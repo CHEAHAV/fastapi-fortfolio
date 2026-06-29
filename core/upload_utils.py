@@ -193,10 +193,14 @@ def _upload_to_cloudinary(upload: UploadFile, folder: str) -> str:
 
 
 def get_cloudinary_public_id(image_url: str | None) -> str | None:
-    if not image_url:
+    value = (image_url or "").strip()
+    if not value:
         return None
 
-    path_parts = urlparse(image_url).path.split("/")
+    if not is_remote_url(value):
+        return str(PurePosixPath(unquote(value)).with_suffix(""))
+
+    path_parts = urlparse(value).path.split("/")
     if "upload" not in path_parts:
         return None
 
@@ -212,14 +216,14 @@ def get_cloudinary_public_id(image_url: str | None) -> str | None:
     return str(PurePosixPath(public_id_path).with_suffix(""))
 
 
-def delete_cloudinary_image(image_url: str | None) -> None:
+def _delete_cloudinary_asset(image_url: str | None) -> None:
     public_id = get_cloudinary_public_id(image_url)
     if not public_id:
         return
 
     try:
         configure_cloudinary()
-        cloudinary.uploader.destroy(public_id, resource_type="image", invalidate=True)
+        result = cloudinary.uploader.destroy(public_id, resource_type="image", invalidate=True)
     except (cloudinary.exceptions.AuthorizationRequired, cloudinary.exceptions.NotAllowed) as exc:
         raise HTTPException(
             status_code=403,
@@ -227,23 +231,21 @@ def delete_cloudinary_image(image_url: str | None) -> None:
         ) from exc
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Cloudinary delete failed: {exc}") from exc
+
+    delete_result = result.get("result") if isinstance(result, dict) else None
+    if delete_result != "ok":
+        raise HTTPException(
+            status_code=502,
+            detail=f"Cloudinary did not delete {public_id}: {result}",
+        )
+
+
+def delete_cloudinary_image(image_url: str | None) -> None:
+    _delete_cloudinary_asset(image_url)
 
 
 def delete_cloudinary_icon(icon_url: str | None) -> None:
-    public_id = get_cloudinary_public_id(icon_url)
-    if not public_id:
-        return
-
-    try:
-        configure_cloudinary()
-        cloudinary.uploader.destroy(public_id, resource_type="image", invalidate=True)
-    except (cloudinary.exceptions.AuthorizationRequired, cloudinary.exceptions.NotAllowed) as exc:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Cloudinary rejected API key {_cloudinary_key_label()}: {exc}",
-        ) from exc
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Cloudinary delete failed: {exc}") from exc
+    _delete_cloudinary_asset(icon_url)
 
 
 def upload_image_to_cloudinary(upload: UploadFile, folder: str) -> str:

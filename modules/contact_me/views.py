@@ -34,7 +34,7 @@ async def create_contact_me(
         name        = contact_me.name,
         description = contact_me.description,
         icon        = icon_filename,
-        contact_url = contact_me.contact_url,
+        contact_url = normalize_contact_url(contact_me.description, contact_me.contact_url),
         active      = contact_me.active
     )
     db.add(new_item)
@@ -140,7 +140,7 @@ async def update_contact_me(
     )
     setattr(item, "name", contact_me.name)
     setattr(item, "description", contact_me.description)
-    setattr(item, "contact_url", contact_me.contact_url)
+    setattr(item, "contact_url", normalize_contact_url(contact_me.description, contact_me.contact_url))
     setattr(item, "active", contact_me.active)
     if contact_me.icon and contact_me.icon.filename:
         old_icon = cast(str | None, getattr(item, "icon", None))
