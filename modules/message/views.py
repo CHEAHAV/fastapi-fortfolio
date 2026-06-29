@@ -61,7 +61,7 @@ async def get_message(
     base_query = db.query(TBL_MESSAGE).filter(TBL_MESSAGE.active == True)
 
     total   = base_query.count()
-    results = base_query.order_by(TBL_MESSAGE.name\
+    results = base_query.order_by(TBL_MESSAGE.first_name\
                         .asc())\
                         .offset((page - 1) * size)\
                         .limit(size)\

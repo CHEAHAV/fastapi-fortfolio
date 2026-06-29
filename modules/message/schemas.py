@@ -12,7 +12,7 @@ class MessageSchema(BaseModel):
     email     : str | None = None
     subject   : str | None = None
     message   : str | None = None
-    active    : bool
+    active    : bool = True
 
 
 class MessageModel(MessageSchema):
@@ -24,7 +24,7 @@ class MessageModel(MessageSchema):
         email      : str  = Form(None, examples=[""]),
         subject    : str  = Form(None, examples=[""]),
         message    : str  = Form(None, examples=[""]),
-        active     : bool = Form(None),
+        active     : bool = Form(True),
     ):
         return cls(
             first_name = first_name,

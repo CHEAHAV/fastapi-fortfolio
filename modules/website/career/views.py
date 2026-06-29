@@ -19,7 +19,7 @@ async def get_career(
     base_query = db.query(TBL_CAREER).filter(TBL_CAREER.active == True)
 
     total   = base_query.count()
-    results = base_query.order_by(TBL_CAREER.name\
+    results = base_query.order_by(TBL_CAREER.title\
                         .asc())\
                         .offset((page - 1) * size)\
                         .limit(size)\

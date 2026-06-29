@@ -19,7 +19,7 @@ async def get_teach_stack(
     base_query = db.query(TBL_TEACH_STACK).filter(TBL_TEACH_STACK.active == True)
 
     total   = base_query.count()
-    results = base_query.order_by(TBL_TEACH_STACK.name\
+    results = base_query.order_by(TBL_TEACH_STACK.name_left\
                         .asc())\
                         .offset((page - 1) * size)\
                         .limit(size)\

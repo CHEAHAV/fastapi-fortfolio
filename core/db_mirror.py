@@ -1,9 +1,12 @@
 from typing import Any
+import logging
 
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import Session, sessionmaker
 
 from config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def _mirror_database_url() -> str:
@@ -54,7 +57,10 @@ class MirroringSession(Session):
         super().commit()
 
         if should_mirror and (upserts or deletes):
-            _mirror_changes(mirror_url, upserts, deletes)
+            try:
+                _mirror_changes(mirror_url, upserts, deletes)
+            except Exception as exc:
+                logger.warning("Database mirror write failed: %s", exc)
 
 
 def _mirror_changes(mirror_url: str, upserts: list[tuple[type, dict]], deletes: list[tuple[type, dict]]) -> None:

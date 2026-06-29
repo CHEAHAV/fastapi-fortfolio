@@ -130,10 +130,6 @@ def startup():
 
     FastAPICache.init(backend, prefix=f"fastapi-{settings.POSTGRES_DB}", key_builder=cache_key_builder)
 
-# Path directory for uploads cv
-UPLOAD_DIR = (Path(tempfile.gettempdir()) if IS_VERCEL else Path(".")) / "uploads" / "cv"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
 @app.get('/', response_class=HTMLResponse, tags=["Home Page"])
 async def home_page():
     html_path   = "templates/home.html"
@@ -180,4 +176,4 @@ def check_duplicate_routes():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
