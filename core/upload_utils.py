@@ -4,10 +4,22 @@ import uuid
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlparse
 import cloudinary
+import cloudinary.exceptions
 import cloudinary.uploader
+from dotenv import load_dotenv
 from fastapi import HTTPException, UploadFile
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+load_dotenv(BASE_DIR / ".env")
+ALLOWED_IMAGE_CONTENT_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/svg+xml",
+    "image/x-icon",
+    "image/vnd.microsoft.icon",
+}
 
 
 def resolve_upload_dir(directory: str) -> Path: 
@@ -55,6 +67,131 @@ def media_name(value: str | None) -> str:
     return unquote(Path(path).name)
 
 
+def _env_value(name: str) -> str:
+    return os.getenv(name, "").strip()
+
+
+def _sanitize_cloudinary_folder(folder: str) -> str:
+    parts = [
+        part.strip().replace("\\", "/").strip("/")
+        for part in folder.split("/")
+        if part.strip().strip("/")
+    ]
+    return "/".join(parts)
+
+
+def _cloudinary_key_label() -> str:
+    key_name = _env_value("CLOUDINARY_CLOUD_KEY_NAME")
+    api_key = _env_value("CLOUDINARY_API_KEY")
+    if key_name and api_key:
+        return f"{key_name} ({api_key[:4]}...{api_key[-4:]})"
+    if api_key:
+        return f"{api_key[:4]}...{api_key[-4:]}"
+    return "configured API key"
+
+
+def configure_cloudinary(require_secret: bool = True) -> None:
+    cloudinary_url = _env_value("CLOUDINARY_URL")
+
+    if cloudinary_url:
+        parsed = urlparse(cloudinary_url)
+        cloud_name = parsed.hostname or ""
+        api_key = unquote(parsed.username or "")
+        api_secret = unquote(parsed.password or "")
+    else:
+        cloud_name = _env_value("CLOUDINARY_CLOUD_NAME")
+        api_key = _env_value("CLOUDINARY_API_KEY")
+        api_secret = _env_value("CLOUDINARY_API_SECRET")
+
+    required_values = {"CLOUDINARY_CLOUD_NAME": cloud_name}
+    if require_secret:
+        required_values.update(
+            {
+                "CLOUDINARY_API_KEY": api_key,
+                "CLOUDINARY_API_SECRET": api_secret,
+            }
+        )
+
+    missing = [name for name, value in required_values.items() if not value]
+    if missing:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Cloudinary is not configured. Missing: {', '.join(missing)}",
+        )
+
+    cloudinary.config(
+        cloud_name=cloud_name,
+        api_key=api_key,
+        api_secret=api_secret,
+        secure=True,
+    )
+
+
+def _validate_image_upload(upload: UploadFile) -> None:
+    if not upload.filename:
+        raise HTTPException(status_code=400, detail="Uploaded file has no filename")
+
+    if upload.content_type and upload.content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported image type: {upload.content_type}",
+        )
+
+
+def _cloudinary_folder(folder: str) -> str:
+    prefix = _env_value("CLOUDINARY_FOLDER_PREFIX") or _env_value("CLOUDINARY_CLOUD_KEY_NAME")
+    folder_name = _sanitize_cloudinary_folder(folder)
+    prefix_name = _sanitize_cloudinary_folder(prefix)
+    return f"{prefix_name}/{folder_name}" if prefix_name else folder_name
+
+
+def _upload_to_cloudinary(upload: UploadFile, folder: str) -> str:
+    _validate_image_upload(upload)
+    upload_preset = _env_value("CLOUDINARY_UPLOAD_PRESET")
+    configure_cloudinary(require_secret=not upload_preset)
+
+    source_name = Path(upload.filename or "upload").name
+    public_id = f"{Path(source_name).stem or 'upload'}-{uuid.uuid4().hex}"
+    upload_options = {
+        "folder": _cloudinary_folder(folder),
+        "public_id": public_id,
+        "resource_type": "image",
+        "overwrite": False,
+        "unique_filename": False,
+    }
+
+    if upload_preset:
+        upload_options["upload_preset"] = upload_preset
+
+    try:
+        upload.file.seek(0)
+        result = cloudinary.uploader.upload(upload.file, **upload_options)
+    except HTTPException:
+        raise
+    except (cloudinary.exceptions.AuthorizationRequired, cloudinary.exceptions.NotAllowed) as exc:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Cloudinary rejected API key {_cloudinary_key_label()}: {exc}. "
+                "Use an API key with upload/create permission, or configure "
+                "CLOUDINARY_UPLOAD_PRESET with an enabled unsigned upload preset."
+            ),
+        ) from exc
+    except cloudinary.exceptions.BadRequest as exc:
+        raise HTTPException(status_code=400, detail=f"Cloudinary upload rejected the file: {exc}") from exc
+    except cloudinary.exceptions.RateLimited as exc:
+        raise HTTPException(status_code=429, detail=f"Cloudinary rate limit reached: {exc}") from exc
+    except Exception as exc:
+        message = str(exc) or exc.__class__.__name__
+        raise HTTPException(status_code=502, detail=f"Cloudinary upload failed: {message}") from exc
+
+    secure_url = result.get("secure_url")
+    if not secure_url:
+        raise HTTPException(status_code=502, detail="Cloudinary upload did not return a secure URL")
+
+    return secure_url
+
+
 def get_cloudinary_public_id(image_url: str | None) -> str | None:
     if not image_url:
         return None
@@ -81,9 +218,15 @@ def delete_cloudinary_image(image_url: str | None) -> None:
         return
 
     try:
+        configure_cloudinary()
         cloudinary.uploader.destroy(public_id, resource_type="image", invalidate=True)
+    except (cloudinary.exceptions.AuthorizationRequired, cloudinary.exceptions.NotAllowed) as exc:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Cloudinary rejected API key {_cloudinary_key_label()}: {exc}",
+        ) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Cloudinary delete failed: {exc}") from exc
+        raise HTTPException(status_code=502, detail=f"Cloudinary delete failed: {exc}") from exc
 
 
 def delete_cloudinary_icon(icon_url: str | None) -> None:
@@ -92,100 +235,20 @@ def delete_cloudinary_icon(icon_url: str | None) -> None:
         return
 
     try:
-        cloudinary.uploader.destroy(public_id, resource_type="icon", invalidate=True)
+        configure_cloudinary()
+        cloudinary.uploader.destroy(public_id, resource_type="image", invalidate=True)
+    except (cloudinary.exceptions.AuthorizationRequired, cloudinary.exceptions.NotAllowed) as exc:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Cloudinary rejected API key {_cloudinary_key_label()}: {exc}",
+        ) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Cloudinary delete failed: {exc}") from exc
+        raise HTTPException(status_code=502, detail=f"Cloudinary delete failed: {exc}") from exc
 
 
 def upload_image_to_cloudinary(upload: UploadFile, folder: str) -> str:
-    if not upload.filename:
-        raise HTTPException(status_code=400, detail="Uploaded file has no filename")
-
-    cloudinary_url            = os.getenv("CLOUDINARY_URL")
-    cloudinary_cloud_key_name = os.getenv("CLOUDINARY_CLOUD_KEY_NAME")
-    cloud_name                = os.getenv("CLOUDINARY_CLOUD_NAME")
-    api_key                   = os.getenv("CLOUDINARY_API_KEY")
-    api_secret                = os.getenv("CLOUDINARY_API_SECRET")
-
-    if not cloudinary_url and (not cloud_name or not api_key or not api_secret):
-        raise HTTPException(status_code=500, detail="Cloudinary is not configured")
-
-    if cloudinary_url:
-        cloudinary.config(secure=True)
-    else:
-        cloudinary.config(
-            cloud_name = cloud_name,
-            api_key    = api_key,
-            api_secret = api_secret,
-            secure     = True,
-        )
-
-    source_name  = Path(upload.filename).name
-    public_id    = f"{Path(source_name).stem or 'upload'}-{uuid.uuid4().hex}"
-    prefix       = os.getenv("CLOUDINARY_FOLDER_PREFIX", cloudinary_cloud_key_name or "").strip("/")
-    cloud_folder = f"{prefix}/{folder.strip('/')}" if prefix else folder.strip("/")
-
-    try:
-        upload.file.seek(0)
-        result = cloudinary.uploader.upload(
-            upload.file,
-            folder        = cloud_folder,
-            public_id     = public_id,
-            resource_type = "image",
-            overwrite     = False,
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Cloudinary upload failed: {exc}") from exc
-
-    secure_url = result.get("secure_url")
-    if not secure_url:
-        raise HTTPException(status_code=500, detail="Cloudinary upload did not return a secure URL")
-
-    return secure_url
+    return _upload_to_cloudinary(upload, folder)
 
 
 def upload_icon_to_cloudinary(upload: UploadFile, folder: str) -> str:
-    if not upload.filename:
-        raise HTTPException(status_code=400, detail="Uploaded file has no filename")
-
-    cloudinary_url            = os.getenv("CLOUDINARY_URL")
-    cloudinary_cloud_key_name = os.getenv("CLOUDINARY_CLOUD_KEY_NAME")
-    cloud_name                = os.getenv("CLOUDINARY_CLOUD_NAME")
-    api_key                   = os.getenv("CLOUDINARY_API_KEY")
-    api_secret                = os.getenv("CLOUDINARY_API_SECRET")
-
-    if not cloudinary_url and (not cloud_name or not api_key or not api_secret):
-        raise HTTPException(status_code=500, detail="Cloudinary is not configured")
-
-    if cloudinary_url:
-        cloudinary.config(secure=True)
-    else:
-        cloudinary.config(
-            cloud_name = cloud_name,
-            api_key    = api_key,
-            api_secret = api_secret,
-            secure     = True,
-        )
-
-    source_name  = Path(upload.filename).name
-    public_id    = f"{Path(source_name).stem or 'upload'}-{uuid.uuid4().hex}"
-    prefix       = os.getenv("CLOUDINARY_FOLDER_PREFIX", cloudinary_cloud_key_name or "").strip("/")
-    cloud_folder = f"{prefix}/{folder.strip('/')}" if prefix else folder.strip("/")
-
-    try:
-        upload.file.seek(0)
-        result = cloudinary.uploader.upload(
-            upload.file,
-            folder        = cloud_folder,
-            public_id     = public_id,
-            resource_type = "image",
-            overwrite     = False,
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Cloudinary upload failed: {exc}") from exc
-
-    secure_url = result.get("secure_url")
-    if not secure_url:
-        raise HTTPException(status_code=500, detail="Cloudinary upload did not return a secure URL")
-
-    return secure_url
+    return _upload_to_cloudinary(upload, folder)

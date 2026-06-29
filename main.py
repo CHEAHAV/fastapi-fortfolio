@@ -1,6 +1,10 @@
-import cloudinary
+from core.runtime import require_project_venv
+
+require_project_venv()
+
 from fastapi import FastAPI, Request, Response
 from config import settings
+from core.upload_utils import configure_cloudinary
 from fastapi.responses import HTMLResponse, JSONResponse
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
@@ -75,12 +79,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.getenv("CLOUDINARY_API_KEY"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
-    secure=True,
-)
+configure_cloudinary()
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):

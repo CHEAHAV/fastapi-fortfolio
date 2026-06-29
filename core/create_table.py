@@ -1,3 +1,7 @@
+from core.runtime import require_project_venv
+
+require_project_venv()
+
 from typing import Any, Mapping
 from passlib.context import CryptContext
 from sqlalchemy import Boolean, Date, DateTime, Integer, Numeric, String, Text, inspect, text
