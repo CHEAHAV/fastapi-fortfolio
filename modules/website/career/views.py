@@ -8,7 +8,7 @@ from modules.career.schemas import career_response
 
 @website.get(
     "/get_career",
-    tags=["career"],
+    tags=["Career"],
     operation_id="get_career",
 )
 async def get_career(

@@ -48,7 +48,7 @@ async def create_career(
 
 @app.get(
     "/get_career",
-    tags=["career"],
+    tags=["Career"],
     operation_id="get_career",
     dependencies=[Depends(get_current_user)],
 )

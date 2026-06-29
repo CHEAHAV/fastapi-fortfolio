@@ -86,7 +86,7 @@ async def get_filter(
 
 @app.get(
     "/get_filter/{filter_id}",
-    tags=["filter"],
+    tags=["Filter"],
     operation_id="get_filter_by_id",
     dependencies=[Depends(get_current_user)],
 )
@@ -113,7 +113,7 @@ async def get_filter_by_id(
 
 @app.put(
     "/update_filter/{filter_id}",
-    tags         = ["filter"],
+    tags         = ["Filter"],
     operation_id = "update_filter",
     dependencies = [Depends(get_current_user)],
 )
@@ -146,7 +146,7 @@ async def update_filter(
 
 @app.delete(
     "/delete_filter/{filter_id}",
-    tags         = ["filter"],
+    tags         = ["Filter"],
     operation_id = "delete_filter",
     dependencies = [Depends(get_current_user)],
 )

@@ -94,7 +94,7 @@ async def get_social(
 
 @app.get(
     "/get_social/{social_id}",
-    tags=["social"],
+    tags=["Social"],
     operation_id="get_social_by_id",
     dependencies=[Depends(get_current_user)],
 )

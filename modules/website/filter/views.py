@@ -48,7 +48,7 @@ async def get_filter(
 
 @website.get(
     "/get_filter/{filter_id}",
-    tags=["filter"],
+    tags=["Filter"],
     operation_id="get_filter_by_id",
 )
 async def get_filter_by_id(

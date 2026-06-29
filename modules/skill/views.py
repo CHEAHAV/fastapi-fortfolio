@@ -96,7 +96,7 @@ async def get_skill(
 
 @app.get(
     "/get_skill/{skill_id}",
-    tags=["skill"],
+    tags=["Skill"],
     operation_id="get_skill_by_id",
     dependencies=[Depends(get_current_user)],
 )
