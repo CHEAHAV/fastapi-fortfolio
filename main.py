@@ -1,7 +1,4 @@
 from core.runtime import require_project_venv
-
-require_project_venv()
-
 from fastapi import FastAPI, Request, Response
 from config import settings
 from core.upload_utils import configure_cloudinary
@@ -20,8 +17,8 @@ from redis import asyncio as aioredis
 from collections import defaultdict
 from starlette.routing import Route
 import core.lib as core_lib
-# from core import *
 
+require_project_venv()
 _get_lang = core_lib.get_lang
 
 def _safe_get_lang(key, params=None, lang='en', path=''):
@@ -40,23 +37,23 @@ BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.PROJECT_VERSION, 
-    swagger_ui_parameters={"docExpansion": "none", "filter": True, "tagsSorter": "alpha",},
+    title                 = settings.PROJECT_NAME,
+    version               = settings.PROJECT_VERSION,
+    swagger_ui_parameters = {"docExpansion": "none", "filter": True, "tagsSorter": "alpha",},
 )
 
 website = FastAPI(
-    title=settings.PROJECT_NAME,
-    version=settings.PROJECT_VERSION, 
-    swagger_ui_parameters={"docExpansion": "none", "filter": True, "tagsSorter": "alpha",},
+    title                 = settings.PROJECT_NAME,
+    version               = settings.PROJECT_VERSION,
+    swagger_ui_parameters = {"docExpansion": "none", "filter": True, "tagsSorter": "alpha",},
 )
 
 website.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins     = settings.ORIGINS,
+    allow_credentials = True,
+    allow_methods     = ["*"],
+    allow_headers     = ["*"],
 )
 
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -73,10 +70,10 @@ async def custom_docs():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins     = settings.ORIGINS,
+    allow_credentials = True,
+    allow_methods     = ["*"],
+    allow_headers     = ["*"],
 )
 
 configure_cloudinary()
@@ -89,11 +86,11 @@ async def add_process_time_header(request: Request, call_next):
     # if check_app_is_offline(request) or check_system_is_offline(request):
     #     return offline_response()
 
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
+    start_time                         = time.time()
+    response                           = await call_next(request)
+    process_time                       = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
-    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Request-ID"]   = request_id
 
     if os.getenv('ENABLE_LOG_REQUEST', 'NO') == 'YES' and not request.url.path.startswith('/static'):  
         response.headers.get("content-type", "")
@@ -105,21 +102,19 @@ async def add_process_time_header(request: Request, call_next):
 
 def cache_key_builder(
     func,
-    namespace: Optional[str] = "",
-    request: Request | None = None,
-    response: Response | None = None,
+    namespace: Optional[str]   = "",
+    request  : Request | None  = None,
+    response : Response | None = None,
     *args,
     **kwargs,
 ):
-    prefix = FastAPICache.get_prefix()
+    prefix    = FastAPICache.get_prefix()
     cache_key = f"{prefix}:{namespace}:{func.__module__}:{func.__name__}:{args}:{kwargs}"
     return cache_key
 
 @app.on_event("startup")
 def startup():
-    # https://pypi.org/project/fastapi-cache2/ 
-    # https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04
-    # int cache with redis
+
     redis = aioredis.from_url(os.getenv("REDIS_URL", "redis://127.0.0.1:6379"), encoding="utf8", decode_responses=True)
     FastAPICache.init(RedisBackend(redis), prefix=f"fastapi-{settings.POSTGRES_DB}",key_builder=cache_key_builder)
 
@@ -129,7 +124,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 @app.get('/', response_class=HTMLResponse, tags=["Home Page"])
 async def home_page():
-    html_path = "templates/home.html"
+    html_path   = "templates/home.html"
     static_path = "static"
     # for route in app.routes:
     #     print(route.path)

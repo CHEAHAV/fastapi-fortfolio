@@ -82,7 +82,7 @@ def _sanitize_cloudinary_folder(folder: str) -> str:
 
 def _cloudinary_key_label() -> str:
     key_name = _env_value("CLOUDINARY_CLOUD_KEY_NAME")
-    api_key = _env_value("CLOUDINARY_API_KEY")
+    api_key  = _env_value("CLOUDINARY_API_KEY")
     if key_name and api_key:
         return f"{key_name} ({api_key[:4]}...{api_key[-4:]})"
     if api_key:
@@ -94,13 +94,13 @@ def configure_cloudinary(require_secret: bool = True) -> None:
     cloudinary_url = _env_value("CLOUDINARY_URL")
 
     if cloudinary_url:
-        parsed = urlparse(cloudinary_url)
+        parsed     = urlparse(cloudinary_url)
         cloud_name = parsed.hostname or ""
-        api_key = unquote(parsed.username or "")
+        api_key    = unquote(parsed.username or "")
         api_secret = unquote(parsed.password or "")
     else:
         cloud_name = _env_value("CLOUDINARY_CLOUD_NAME")
-        api_key = _env_value("CLOUDINARY_API_KEY")
+        api_key    = _env_value("CLOUDINARY_API_KEY")
         api_secret = _env_value("CLOUDINARY_API_SECRET")
 
     required_values = {"CLOUDINARY_CLOUD_NAME": cloud_name}
@@ -120,10 +120,10 @@ def configure_cloudinary(require_secret: bool = True) -> None:
         )
 
     cloudinary.config(
-        cloud_name=cloud_name,
-        api_key=api_key,
-        api_secret=api_secret,
-        secure=True,
+        cloud_name = cloud_name,
+        api_key    = api_key,
+        api_secret = api_secret,
+        secure     = True,
     )
 
 
@@ -139,7 +139,7 @@ def _validate_image_upload(upload: UploadFile) -> None:
 
 
 def _cloudinary_folder(folder: str) -> str:
-    prefix = _env_value("CLOUDINARY_FOLDER_PREFIX") or _env_value("CLOUDINARY_CLOUD_KEY_NAME")
+    prefix      = _env_value("CLOUDINARY_FOLDER_PREFIX") or _env_value("CLOUDINARY_CLOUD_KEY_NAME")
     folder_name = _sanitize_cloudinary_folder(folder)
     prefix_name = _sanitize_cloudinary_folder(prefix)
     return f"{prefix_name}/{folder_name}" if prefix_name else folder_name
@@ -151,7 +151,7 @@ def _upload_to_cloudinary(upload: UploadFile, folder: str) -> str:
     configure_cloudinary(require_secret=not upload_preset)
 
     source_name = Path(upload.filename or "upload").name
-    public_id = f"{Path(source_name).stem or 'upload'}-{uuid.uuid4().hex}"
+    public_id   = f"{Path(source_name).stem or 'upload'}-{uuid.uuid4().hex}"
     upload_options = {
         "folder": _cloudinary_folder(folder),
         "public_id": public_id,

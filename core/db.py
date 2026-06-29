@@ -1,6 +1,7 @@
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import create_engine
 from config import settings
+from core.db_mirror import MirroringSession
 
 Base = declarative_base()
 
@@ -10,7 +11,7 @@ engine = create_engine(
     pool_pre_ping=True
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=MirroringSession)
 
 # Backward-compatible alias for older code in this project.
 Session = SessionLocal

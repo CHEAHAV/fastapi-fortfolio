@@ -7,7 +7,7 @@ PROJECT_VENV = BASE_DIR / "venv"
 
 
 def require_project_venv() -> None:
-    current_prefix = Path(sys.prefix).resolve()
+    current_prefix  = Path(sys.prefix).resolve()
     expected_prefix = PROJECT_VENV.resolve()
 
     if current_prefix == expected_prefix:

@@ -5,7 +5,7 @@ def generate_prefixed_id(db, models, prefix, width=8):
     if not isinstance(models, (list, tuple)):
         models = [models]
 
-    max_id = 0
+    max_id  = 0
     pattern = re.compile(rf"{re.escape(prefix)}(\d+)")
 
     for model in models:

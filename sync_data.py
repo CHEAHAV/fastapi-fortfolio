@@ -1,5 +1,5 @@
 from core.runtime import require_project_venv
-from core.create_table import run
+from core.sync_data import run
 
 require_project_venv()
 if __name__ == "__main__":
