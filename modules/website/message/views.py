@@ -5,7 +5,39 @@ from core.api.user.views import get_current_user
 from core.db_session import get_db
 from main import website
 from modules.message.models import TBL_MESSAGE
-from modules.message.schemas import message_response
+from modules.message.schemas import MessageModel, generate_id, message_response
+
+@website.post(
+    "/create_message",
+    tags=["Message"],
+    status_code=201,
+    operation_id="website_create_message",
+)
+async def create_message(
+    message: MessageModel = Depends(MessageModel.form),
+    db     : Session      = Depends(get_db),
+):
+    new_item = TBL_MESSAGE(
+        id         = generate_id(db),
+        first_name = message.first_name,
+        last_name  = message.last_name,
+        email      = message.email,
+        subject    = message.subject,
+        message    = message.message,
+        active     = True,
+    )
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+
+    return {
+        "ok"     : True,
+        "status" : 201,
+        "title"  : "Message",
+        "message": "Data created successfully",
+        "data"   : message_response(new_item),
+        "error"  : {},
+    }
 
 @website.get(
     "/get_message",

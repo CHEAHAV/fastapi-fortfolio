@@ -63,7 +63,7 @@ if not IS_VERCEL:
     STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR), check_dir=False), name="static")
 
-app.mount("/api/v1/website", website)
+app.mount("/website", website)
     
 @app.get("/custom/docs", include_in_schema=False)
 async def custom_docs():
@@ -123,7 +123,7 @@ def cache_key_builder(
 def startup():
     redis_url = os.getenv("REDIS_URL", "").strip()
     if redis_url:
-        redis = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
+        redis   = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
         backend = RedisBackend(redis)
     else:
         backend = InMemoryBackend()
@@ -143,7 +143,7 @@ async def home_page():
         <center>
         <h1>Welcome Backend Swinger</h1>
         <p><a href="/docs">Visit Backend API Document</a></p>
-        <p><a href="/api/v1/website/docs">Visit Website API Document</a></p>
+        <p><a href="/website/docs">Visit Website API Document</a></p>
         </center>        
     '''
     return HTMLResponse(content=html, status_code=200)
@@ -171,9 +171,3 @@ def check_duplicate_routes():
             print(f"  {method} {path} -> {handlers}")
     # else:
     #     print("No duplicate routes found.")
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
