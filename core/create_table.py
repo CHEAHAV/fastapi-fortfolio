@@ -1,5 +1,6 @@
 from core.runtime import require_project_venv
 from typing import Any, Mapping
+from urllib.parse import urlparse
 from passlib.context import CryptContext
 from sqlalchemy import Boolean, Date, DateTime, Integer, Numeric, String, Text, create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
@@ -7,8 +8,6 @@ from sqlalchemy.schema import CreateColumn
 from config import settings
 from core.api.role.models import TBL_ROLE
 from core.api.user.models import TBL_USER
-from core.api.module.models import TBL_MODULE
-from core.api.sub_module.models import TBL_SUB_MODULE
 from core.db import Base
 from core.module_loader import import_registered_module_models
 
@@ -149,51 +148,6 @@ def seed_default_user(session_factory) -> None:
     finally:
         db.close()
 
-
-def seed_default_modules(session_factory) -> None:
-    db = session_factory()
-    try:
-        category_module = db.query(TBL_MODULE).filter(TBL_MODULE.id == "MOD_CATEGORY").first()
-        if not category_module:
-            category_module = TBL_MODULE(
-                id       = "MOD_CATEGORY",
-                name     = "Category",
-                name_lc  = "Category",
-                url      = "/category",
-                icon     = "i-lucide-tags",
-                model    = "category",
-                ordering = 1,
-                active   = True,
-            )
-            db.add(category_module)
-
-        category_sub_module = (
-            db.query(TBL_SUB_MODULE)
-            .filter(TBL_SUB_MODULE.id == "SMD_CATEGORY_LIST")
-            .first()
-        )
-        if not category_sub_module:
-            category_sub_module = TBL_SUB_MODULE(
-                id        = "SMD_CATEGORY_LIST",
-                module_id = "MOD_CATEGORY",
-                name      = "Category List",
-                name_lc   = "Category List",
-                url       = "/category",
-                icon      = "i-lucide-list",
-                model     = "category",
-                ordering  = 1,
-                active    = True,
-            )
-            db.add(category_sub_module)
-
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()
-
-
 def _sync_targets() -> list[tuple[str, str]]:
     targets = settings.CREATE_TABLE_TARGETS
     if "all" in targets:
@@ -232,15 +186,28 @@ def _create_engine(database_url: str):
     )
 
 
+def _database_label(database_url: str) -> str:
+    parsed   = urlparse(database_url)
+    host     = parsed.hostname or "unknown-host"
+    database = parsed.path.strip("/") or "unknown-database"
+    return f"{host}/{database}"
+
+
+def verify_database(active_engine, target_name: str) -> None:
+    inspector = inspect(active_engine)
+    tables    = inspector.get_table_names()
+    print(f"Verified {target_name} database: {len(tables)} tables.")
+
+
 def sync_database(target_name: str, database_url: str) -> None:
-    print(f"Syncing {target_name} database...")
+    print(f"Syncing {target_name} database ({_database_label(database_url)})...")
     active_engine   = _create_engine(database_url)
     session_factory = sessionmaker(autocommit=False, autoflush=False, bind=active_engine)
 
     try:
         create_tables(active_engine)
         seed_default_user(session_factory)
-        seed_default_modules(session_factory)
+        verify_database(active_engine, target_name)
     finally:
         active_engine.dispose()
 
