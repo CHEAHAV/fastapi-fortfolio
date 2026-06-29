@@ -56,4 +56,27 @@ python sync_data.py
 
 For hosting, add `DB_TARGET=neon` and `NEON_DATABASE_URL` to your hosting provider's environment variables. For local development, keep `DB_TARGET=local`. Do not commit your real `.env` file.
 
+## Vercel Deployment
+
+Vercel uses `.python-version`, which is set to Python 3.12 because Python 3.14 is not available in the Vercel runtime used by this project. Local development can still use the project `venv`.
+
+Set these Vercel environment variables:
+
+```env
+DB_TARGET=neon
+NEON_DATABASE_URL=postgresql://neondb_owner:your_password@your-neon-host.neon.tech/Portfolio?sslmode=require
+MIRROR_DATABASE_WRITES=false
+SECRET_KEY=your_secret_key
+CORS_ORIGINS=https://your-frontend-domain.com
+```
+
+Add your Cloudinary variables too if uploads are used:
+
+```env
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_cloud_api_key
+CLOUDINARY_API_SECRET=your_cloud_api_secret
+CLOUDINARY_FOLDER_PREFIX=hav-portfolio
+```
+
 Default admin login after seeding:

@@ -1,4 +1,5 @@
 import sys
+import os
 from pathlib import Path
 
 
@@ -7,6 +8,9 @@ PROJECT_VENV = BASE_DIR / "venv"
 
 
 def require_project_venv() -> None:
+    if os.getenv("VERCEL") or os.getenv("SKIP_PROJECT_VENV_CHECK", "").lower() == "true":
+        return
+
     current_prefix  = Path(sys.prefix).resolve()
     expected_prefix = PROJECT_VENV.resolve()
 

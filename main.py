@@ -7,10 +7,12 @@ from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
+import tempfile
 import time
 import uuid
 from pathlib import Path 
 from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
 from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
 from redis import asyncio as aioredis
@@ -35,6 +37,7 @@ core_lib.get_lang = _safe_get_lang
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
+IS_VERCEL = bool(os.getenv("VERCEL"))
 
 app = FastAPI(
     title                 = settings.PROJECT_NAME,
@@ -56,8 +59,9 @@ website.add_middleware(
     allow_headers     = ["*"],
 )
 
-STATIC_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+if not IS_VERCEL:
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR), check_dir=False), name="static")
 
 app.mount("/api/v1/website", website)
     
@@ -76,7 +80,10 @@ app.add_middleware(
     allow_headers     = ["*"],
 )
 
-configure_cloudinary()
+try:
+    configure_cloudinary()
+except Exception as exc:
+    print(f"Cloudinary is not configured at startup: {exc}")
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -114,12 +121,17 @@ def cache_key_builder(
 
 @app.on_event("startup")
 def startup():
+    redis_url = os.getenv("REDIS_URL", "").strip()
+    if redis_url:
+        redis = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
+        backend = RedisBackend(redis)
+    else:
+        backend = InMemoryBackend()
 
-    redis = aioredis.from_url(os.getenv("REDIS_URL", "redis://127.0.0.1:6379"), encoding="utf8", decode_responses=True)
-    FastAPICache.init(RedisBackend(redis), prefix=f"fastapi-{settings.POSTGRES_DB}",key_builder=cache_key_builder)
+    FastAPICache.init(backend, prefix=f"fastapi-{settings.POSTGRES_DB}", key_builder=cache_key_builder)
 
 # Path directory for uploads cv
-UPLOAD_DIR = Path("uploads") / "cv"
+UPLOAD_DIR = (Path(tempfile.gettempdir()) if IS_VERCEL else Path(".")) / "uploads" / "cv"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 @app.get('/', response_class=HTMLResponse, tags=["Home Page"])
