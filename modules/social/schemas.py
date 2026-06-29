@@ -10,6 +10,7 @@ class SocialSchema(BaseModel):
     id         : str | None = None
     name       : str | None = None
     icon       : UploadFile | None = None
+    social_url : str | None = None
     active     : bool
 
 
@@ -17,14 +18,16 @@ class SocialModel(SocialSchema):
     @classmethod
     def form(
         cls,
-        name   : str        = Form(None, examples=[""]),
-        icon   : UploadFile = File(None),
-        active : bool       = True,
+        name       : str        = Form(None, examples=[""]),
+        icon       : UploadFile = File(None),
+        social_url : str        = Form(None, examples=[""]),
+        active     : bool       = True,
     ):
         return cls(
-            name   = name,
-            icon   = icon,
-            active = active,
+            name       = name,
+            icon       = icon,
+            social_url = social_url,
+            active     = active,
         )
 
 def generate_id(db: Session) -> str:
@@ -42,9 +45,10 @@ def save_icon(icon: UploadFile) -> str:
 def social_response(item: Any) -> dict[str, Any]:
     icon = cast(str | None, getattr(item, "icon"))
     return {
-        "id"       : getattr(item, "id"),
-        "name"     : getattr(item, "name"),
-        "icon"     : media_name(icon),
-        "icon_link": media_url(icon),
-        "active"   : getattr(item, "active"),
+        "id"        : getattr(item, "id"),
+        "name"      : getattr(item, "name"),
+        "icon"      : media_name(icon),
+        "icon_link" : media_url(icon),
+        "social_url": getattr(item, "social_url"),
+        "active"    : getattr(item, "active"),
     }

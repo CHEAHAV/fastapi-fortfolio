@@ -142,8 +142,10 @@ async def update_skill(
     setattr(item, "score", skill.score)
     setattr(item, "description", skill.description)
     setattr(item, "active", skill.active)
-    if skill.image and skill.image.filename: 
+    if skill.image and skill.image.filename:
+        old_image = cast(str | None, getattr(item, "image", None))
         setattr(item, "image", save_image(skill.image))
+        delete_cloudinary_image(old_image)
 
     db.commit()
     db.refresh(item)

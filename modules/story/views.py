@@ -142,8 +142,10 @@ async def update_story(
     setattr(item, "description", story.description)
     setattr(item, "icon_name", story.icon_name)
     setattr(item, "active", story.active)
-    if story.icon and story.icon.filename: 
+    if story.icon and story.icon.filename:
+        old_icon = cast(str | None, getattr(item, "icon", None))
         setattr(item, "icon", save_icon(story.icon))
+        delete_cloudinary_icon(old_icon)
 
     db.commit()
     db.refresh(item)

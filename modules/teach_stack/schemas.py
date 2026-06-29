@@ -46,14 +46,15 @@ def save_image(image: UploadFile) -> str:
 
 
 def teach_stack_response(item: Any) -> dict[str, Any]:
-    image = cast(str | None, getattr(item, "image"))
+    image_left = cast(str | None, getattr(item, "image_left"))
+    image_right = cast(str | None, getattr(item, "image_right"))
     return {
         "id"              : getattr(item, "id"),
         "name_left"       : getattr(item, "name_left"),
-        "image_left"      : media_name(image),
-        "image_left_link" : media_url(image),
+        "image_left"      : media_name(image_left),
+        "image_left_link" : media_url(image_left),
         "name_right"      : getattr(item, "name_right"),
-        "image_right"     : media_name(image),
-        "image_right_link": media_url(image),
+        "image_right"     : media_name(image_right),
+        "image_right_link": media_url(image_right),
         "active"          : getattr(item, "active"),
     }

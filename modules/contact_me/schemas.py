@@ -12,6 +12,7 @@ class ContactMeSchema(BaseModel):
     name       : str | None = None
     description: str | None = None
     icon       : UploadFile | None = None
+    contact_url: str | None = None
     active     : bool
 
 
@@ -22,12 +23,14 @@ class ContactMeModel(ContactMeSchema):
         name        : str        = Form(None, examples=[""]),
         description : str        = Form(None, examples=[""]),
         icon        : UploadFile = File(None),
+        contact_url : str        = Form(None, examples=[""]),
         active      : bool       = True,
     ):
         return cls(
             name        = name,
             description = description,
             icon        = icon,
+            contact_url = contact_url,
             active      = active,
         )
 
@@ -51,5 +54,6 @@ def contact_me_response(item: Any) -> dict[str, Any]:
         "description": getattr(item, "description"),
         "icon"       : media_name(icon),
         "icon_link"  : media_url(icon),
+        "contact_url": getattr(item, "contact_url"),
         "active"     : getattr(item, "active"),
     }

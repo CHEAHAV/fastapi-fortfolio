@@ -150,8 +150,10 @@ async def update_project(
     setattr(item, "challenge", project.challenge)
     setattr(item, "project_url", project.project_url)
     setattr(item, "active", project.active)
-    if project.image and project.image.filename: 
+    if project.image and project.image.filename:
+        old_image = cast(str | None, getattr(item, "image", None))
         setattr(item, "image", save_image(project.image))
+        delete_cloudinary_image(old_image)
 
     db.commit()
     db.refresh(item)

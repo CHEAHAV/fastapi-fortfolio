@@ -1,6 +1,5 @@
 from modules.certification.views import *
 from modules.contact_me.views import *
-from modules.filter.views import *
 from modules.info.views import *
 from modules.message.views import *
 from modules.mycore.views import *

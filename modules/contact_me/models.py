@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, String
+from sqlalchemy import Boolean, Column, String, Text
 from core.db import Base
 
 class TBL_CONTACT_ME(Base):
@@ -9,4 +9,5 @@ class TBL_CONTACT_ME(Base):
     name        = Column(String(255))
     description = Column(String(255))
     icon        = Column(String(255))
+    contact_url = Column(Text)
     active      = Column(Boolean, default= True, nullable= False)

@@ -140,8 +140,10 @@ async def update_mycore(
     setattr(item, "name", mycore.name)
     setattr(item, "description", mycore.description)
     setattr(item, "active", mycore.active)
-    if mycore.image and mycore.image.filename: 
+    if mycore.image and mycore.image.filename:
+        old_image = cast(str | None, getattr(item, "image", None))
         setattr(item, "image", save_image(mycore.image))
+        delete_cloudinary_image(old_image)
 
     db.commit()
     db.refresh(item)

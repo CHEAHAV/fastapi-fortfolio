@@ -30,10 +30,11 @@ async def create_social(
 
     # 3. Insert the new record
     new_item = TBL_SOCIAL(
-        id            = new_id,
-        name          = social.name,
-        icon         = icon_filename,
-        active        = social.active
+        id         = new_id,
+        name       = social.name,
+        icon       = icon_filename,
+        social_url = social.social_url,
+        active     = social.active
     )
     db.add(new_item)
     db.commit()
@@ -137,9 +138,12 @@ async def update_social(
             detail      = "Social not found",
     )
     setattr(item, "name", social.name)
+    setattr(item, "social_url", social.social_url)
     setattr(item, "active", social.active)
-    if social.icon and social.icon.filename: 
+    if social.icon and social.icon.filename:
+        old_icon = cast(str | None, getattr(item, "icon", None))
         setattr(item, "icon", save_icon(social.icon))
+        delete_cloudinary_icon(old_icon)
 
     db.commit()
     db.refresh(item)

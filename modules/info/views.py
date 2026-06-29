@@ -140,8 +140,10 @@ async def update_info(
     setattr(item, "name", info.name)
     setattr(item, "description", info.description)
     setattr(item, "active", info.active)
-    if info.image and info.image.filename: 
+    if info.image and info.image.filename:
+        old_image = cast(str | None, getattr(item, "image", None))
         setattr(item, "image", save_image(info.image))
+        delete_cloudinary_image(old_image)
 
     db.commit()
     db.refresh(item)

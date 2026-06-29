@@ -1,6 +1,5 @@
 from modules.website.certification.views import *
 from modules.website.contact_me.views import *
-from modules.website.filter.views import *
 from modules.website.info.views import *
 from modules.website.message.views import *
 from modules.website.mycore.views import *
@@ -10,4 +9,4 @@ from modules.website.social.views import *
 from modules.website.story.views import *
 from modules.website.study.views import *
 from modules.website.teach_stack.views import *
-from modules.website.career.views import *
+from modules.website.career.views import * 

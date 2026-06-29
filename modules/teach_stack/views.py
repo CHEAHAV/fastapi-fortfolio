@@ -71,7 +71,7 @@ async def get_teach_stack(
     base_query = db.query(TBL_TEACH_STACK).filter(TBL_TEACH_STACK.active == True)
 
     total   = base_query.count()
-    results = base_query.order_by(TBL_TEACH_STACK.name\
+    results = base_query.order_by(TBL_TEACH_STACK.name_left\
                         .asc())\
                         .offset((page - 1) * size)\
                         .limit(size)\
@@ -145,10 +145,14 @@ async def update_teach_stack(
     setattr(item, "name_left", teach_stack.name_left)
     setattr(item, "name_right", teach_stack.name_right)
     setattr(item, "active", teach_stack.active)
-    if teach_stack.image_left and teach_stack.image_left.filename: 
+    if teach_stack.image_left and teach_stack.image_left.filename:
+        old_image_left = cast(str | None, getattr(item, "image_left", None))
         setattr(item, "image_left", save_image(teach_stack.image_left))
-    if teach_stack.image_right and teach_stack.image_right.filename: 
+        delete_cloudinary_image(old_image_left)
+    if teach_stack.image_right and teach_stack.image_right.filename:
+        old_image_right = cast(str | None, getattr(item, "image_right", None))
         setattr(item, "image_right", save_image(teach_stack.image_right))
+        delete_cloudinary_image(old_image_right)
 
     db.commit()
     db.refresh(item)

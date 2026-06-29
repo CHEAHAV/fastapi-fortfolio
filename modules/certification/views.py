@@ -147,8 +147,10 @@ async def update_certificate(
     setattr(item, "credential_id", certificate.credential_id)
     setattr(item, "certificate_url", certificate.certificate_url)
     setattr(item, "active", certificate.active)
-    if certificate.icon and certificate.icon.filename: 
+    if certificate.icon and certificate.icon.filename:
+        old_icon = cast(str | None, getattr(item, "icon", None))
         setattr(item, "icon", save_icon(certificate.icon))
+        delete_cloudinary_icon(old_icon)
 
     db.commit()
     db.refresh(item)
