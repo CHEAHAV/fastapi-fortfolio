@@ -1,7 +1,6 @@
 import math
 from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from core.api.user.views import get_current_user
 from core.db_session import get_db
 from main import website
 from modules.social.models import TBL_SOCIAL
