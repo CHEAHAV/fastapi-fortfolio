@@ -1,7 +1,6 @@
 import math
 from fastapi import Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from core.api.user.views import get_current_user
 from core.db_session import get_db
 from main import website
 from modules.skill.models import TBL_SKILL
@@ -52,7 +51,6 @@ async def get_skill(
     "/get_skill/{skill_id}",
     tags=["Skill"],
     operation_id="get_skill_by_id",
-    dependencies=[Depends(get_current_user)],
 )
 async def get_skill_by_id(
     skill_id: str,

@@ -7,46 +7,6 @@ from sqlalchemy.orm import Session
 from modules.message.models import TBL_MESSAGE
 from modules.message.schemas import *
 
-@app.post(
-    "/create_message",
-    tags=["Message"],
-    status_code=201,
-    operation_id="create_message",
-    dependencies=[Depends(get_current_user)],
-)
-async def create_message(
-    message: MessageModel = Depends(MessageModel.form),
-    db      : Session        = Depends(get_db),
-):
-    # 1. Generate a unique, prefixed ID
-    new_id = generate_id(db)
-
-    # 2. Insert the new record
-    new_item = TBL_MESSAGE(
-        id         = new_id,
-        first_name = message.first_name,
-        last_name  = message.last_name,
-        email      = message.email,
-        subject    = message.subject,
-        message    = message.message,
-        active     = message.active
-    )
-    db.add(new_item)
-    db.commit()
-    db.refresh(new_item)
-
-    data = message_response(new_item)
-
-    return {
-        "ok"     : True,
-        "status" : 201,
-        "title"  : "Message",
-        "message": "Data created successfully",
-        "data"   : data,
-        "error"  : {},
-    }
-
-
 @app.get(
     "/get_message",
     tags=["Message"],

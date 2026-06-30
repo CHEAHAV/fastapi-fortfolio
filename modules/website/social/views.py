@@ -52,7 +52,6 @@ async def get_social(
     "/get_social/{social_id}",
     tags=["Social"],
     operation_id="get_social_by_id",
-    dependencies=[Depends(get_current_user)],
 )
 async def get_social_by_id(
     social_id: str,
