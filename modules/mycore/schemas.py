@@ -47,7 +47,6 @@ def mycore_response(item: Any) -> dict[str, Any]:
     return {
         "id"         : getattr(item, "id"),
         "name"       : getattr(item, "name"),
-        "name_lc"    : getattr(item, "name_lc"),
         "description": getattr(item, "description"),
         "image"      : media_name(image),
         "image_link" : media_url(image),
