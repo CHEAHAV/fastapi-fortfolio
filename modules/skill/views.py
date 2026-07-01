@@ -67,8 +67,8 @@ async def get_skill(
     base_query = db.query(TBL_SKILL).filter(TBL_SKILL.active == True)
 
     total   = base_query.count()
-    results = base_query.order_by(TBL_SKILL.name\
-                        .asc())\
+    results = base_query.order_by(TBL_SKILL.score\
+                        .desc())\
                         .offset((page - 1) * size)\
                         .limit(size)\
                         .all()
