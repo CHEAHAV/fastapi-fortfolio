@@ -95,6 +95,7 @@ async def update_message(
     setattr(item, "first_name", message.first_name)
     setattr(item, "last_name", message.last_name)
     setattr(item, "email", message.email)
+    setattr(item, "phone", message.phone)
     setattr(item, "subject", message.subject)
     setattr(item, "message", message.message)
     setattr(item, "active", message.active)

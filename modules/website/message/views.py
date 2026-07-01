@@ -1,6 +1,7 @@
 import math
 import os
 import re
+from html import escape
 from datetime import datetime
 from typing import cast
 from fastapi import Depends, HTTPException, Query, status
@@ -76,16 +77,19 @@ def _get_resend_sender() -> str:
 def _build_email_text(
     sender_name: str,
     reply_to: str,
+    sender_phone: str,
     subject: str,
     message_body: str,
 ) -> str:
     sender_email = reply_to or "Not provided"
+    phone = sender_phone or "Not provided"
     sent_date = datetime.now().strftime("%B %d, %Y")
 
     return f"""Subject: Inquiry regarding {subject} - {sender_name}
 
 HEADER CONTACT
 From: {sender_email}
+Phone : {phone}
 Date: {sent_date}
 
 Dear IT CHEAHAV,
@@ -105,6 +109,66 @@ Best regards,
 {sender_name}
 
 """
+
+
+def _tel_href(phone: str) -> str:
+    return re.sub(r"[^\d+]", "", phone)
+
+
+def _build_email_html(
+    sender_name: str,
+    reply_to: str,
+    sender_phone: str,
+    subject: str,
+    message_body: str,
+) -> str:
+    sender_email = reply_to or "Not provided"
+    phone = sender_phone or "Not provided"
+    phone_href = _tel_href(sender_phone)
+    sent_date = datetime.now().strftime("%B %d, %Y")
+
+    from_value = (
+        f'<a href="mailto:{escape(reply_to)}">{escape(reply_to)}</a>'
+        if reply_to
+        else escape(sender_email)
+    )
+    phone_value = (
+        f'<a href="tel:{escape(phone_href)}">{escape(phone)}</a>'
+        if phone_href
+        else escape(phone)
+    )
+    body = escape(message_body or "No message provided.").replace("\n", "<br>")
+
+    return f"""<!doctype html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #222; line-height: 1.45;">
+  <p>Subject: Inquiry regarding {escape(subject)} - {escape(sender_name)}</p>
+
+  <p>
+    HEADER CONTACT<br>
+    From: {from_value}<br>
+    Phone : {phone_value}<br>
+    Date: {escape(sent_date)}
+  </p>
+
+  <p>Dear IT CHEAHAV,</p>
+
+  <p>I hope this email finds you well.</p>
+
+  <p>I am reaching out through your portfolio contact form regarding the following inquiry:</p>
+
+  <p>{body}</p>
+
+  <p>Could you please review this message and respond when you are available?</p>
+
+  <p>Thank you for your time and consideration. I look forward to hearing from you.</p>
+
+  <p>
+    Best regards,<br>
+    {escape(sender_name)}
+  </p>
+</body>
+</html>"""
 
 
 def _send_message_email(message: MessageModel) -> None:
@@ -127,13 +191,27 @@ def _send_message_email(message: MessageModel) -> None:
     sender_name = " ".join(
         value for value in [message.first_name, message.last_name] if value
     ).strip() or "Website visitor"
+    sender_phone = (message.phone or "").strip()
     subject = (message.subject or "New portfolio message").strip()
 
     email_params = cast(resend.Emails.SendParams, {
         "from": sender,
         "to": recipients,
         "subject": f"Inquiry regarding {subject} - {sender_name}",
-        "text": _build_email_text(sender_name, reply_to, subject, message.message or ""),
+        "text": _build_email_text(
+            sender_name,
+            reply_to,
+            sender_phone,
+            subject,
+            message.message or "",
+        ),
+        "html": _build_email_html(
+            sender_name,
+            reply_to,
+            sender_phone,
+            subject,
+            message.message or "",
+        ),
     })
     if reply_to:
         email_params["reply_to"] = reply_to
@@ -164,6 +242,7 @@ async def create_message(
         first_name = message.first_name,
         last_name  = message.last_name,
         email      = message.email,
+        phone      = message.phone,
         subject    = message.subject,
         message    = message.message,
         active     = True,

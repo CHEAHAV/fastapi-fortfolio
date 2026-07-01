@@ -10,6 +10,7 @@ class MessageSchema(BaseModel):
     first_name: str | None = None
     last_name : str | None = None
     email     : str | None = None
+    phone     : str | None = None
     subject   : str | None = None
     message   : str | None = None
     active    : bool = True
@@ -22,6 +23,7 @@ class MessageModel(MessageSchema):
         first_name : str  = Form(None, examples=[""]),
         last_name  : str  = Form(None, examples=[""]),
         email      : str  = Form(None, examples=[""]),
+        phone      : str  = Form(None, examples=[""]),
         subject    : str  = Form(None, examples=[""]),
         message    : str  = Form(None, examples=[""]),
         active     : bool = Form(True),
@@ -30,6 +32,7 @@ class MessageModel(MessageSchema):
             first_name = first_name,
             last_name  = last_name,
             email      = email,
+            phone      = phone,
             subject    = subject,
             message    = message,
             active     = active,
@@ -49,6 +52,7 @@ def message_response(item: Any) -> dict[str, Any]:
         "first_name": getattr(item, "first_name"),
         "last_name" : getattr(item, "last_name"),
         "email"     : getattr(item, "email"),
+        "phone"     : getattr(item, "phone"),
         "subject"   : getattr(item, "subject"),
         "message"   : getattr(item, "message"),
         "active"    : getattr(item, "active"),

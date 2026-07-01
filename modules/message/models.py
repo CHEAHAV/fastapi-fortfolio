@@ -9,6 +9,7 @@ class TBL_MESSAGE(Base):
     first_name = Column(String(255))
     last_name  = Column(String(255))
     email      = Column(String(255))
+    phone      = Column(String(10))
     subject    = Column(String(255))
     message    = Column(Text)
     active     = Column(Boolean, default = True, nullable= False)
