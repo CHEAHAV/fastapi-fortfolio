@@ -67,7 +67,7 @@ async def get_story(
     base_query = db.query(TBL_STORY).filter(TBL_STORY.active == True)
 
     total   = base_query.count()
-    results = base_query.order_by(TBL_STORY.name\
+    results = base_query.order_by(TBL_STORY.title\
                         .asc())\
                         .offset((page - 1) * size)\
                         .limit(size)\

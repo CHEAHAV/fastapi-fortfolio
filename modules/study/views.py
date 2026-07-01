@@ -60,7 +60,7 @@ async def get_study(
     base_query = db.query(TBL_STUDY).filter(TBL_STUDY.active == True)
 
     total   = base_query.count()
-    results = base_query.order_by(TBL_STUDY.name\
+    results = base_query.order_by(TBL_STUDY.title\
                         .asc())\
                         .offset((page - 1) * size)\
                         .limit(size)\
