@@ -62,7 +62,7 @@ def certification_response(item: Any) -> dict[str, Any]:
         "title"          : getattr(item, "title"),
         "issuer"         : getattr(item, "issuer"),
         "date_earned"    : getattr(item, "date_earned"),
-        "credentail_id"  : getattr(item, "credentail_id"),
+        "credential_id"  : getattr(item, "credential_id"),
         "certificate_url": getattr(item, "certificate_url"),
         "icon"           : media_name(icon),
         "icon_link"      : media_url(icon),

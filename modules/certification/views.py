@@ -32,6 +32,7 @@ async def create_certification(
     new_item = TBL_CERTIFICATION(
         id              = new_id,
         name            = certification.name,
+        title           = certification.title,
         issuer          = certification.issuer,
         date_earned     = certification.date_earned,
         credential_id   = certification.credential_id,
