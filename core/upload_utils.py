@@ -233,7 +233,7 @@ def _delete_cloudinary_asset(image_url: str | None) -> None:
         raise HTTPException(status_code=502, detail=f"Cloudinary delete failed: {exc}") from exc
 
     delete_result = result.get("result") if isinstance(result, dict) else None
-    if delete_result != "ok":
+    if delete_result not in {"ok", "not found"}:
         raise HTTPException(
             status_code=502,
             detail=f"Cloudinary did not delete {public_id}: {result}",

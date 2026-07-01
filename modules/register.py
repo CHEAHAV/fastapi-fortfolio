@@ -10,3 +10,4 @@ from modules.story.views import *
 from modules.study.views import *
 from modules.teach_stack.views import *
 from modules.career.views import *
+from modules.experience.views import *
