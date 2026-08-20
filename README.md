@@ -1,4 +1,4 @@
-# Online Shop Backend
+# Portfolio Backend
 
 This backend is configured for Python 3.14.
 
