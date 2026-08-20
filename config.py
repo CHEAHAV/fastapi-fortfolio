@@ -64,9 +64,9 @@ CENTRAL_API_KEY  = os.getenv("CENTRAL_API_KEY", "")
 CENTRAL_BASE_URL = os.getenv("CENTRAL_BASE_URL", "")
 
 class Settings:
-    PROJECT_NAME        :str  = "Online Shop Backend API"
-    POS_PROJECT_NAME    :str  = "Online Shop POS API"
-    MOBILE_PROJECT_NAME :str  = "Online Shop Mobile API"
+    PROJECT_NAME        :str  = "Portfolio Backend API"
+    POS_PROJECT_NAME    :str  = "Portfolio POS API"
+    MOBILE_PROJECT_NAME :str  = "Portfolio Mobile API"
     PROJECT_VERSION     :str  = "1.0.0"
     
     APP_URL      = os.getenv("APP_URL", "").strip()
