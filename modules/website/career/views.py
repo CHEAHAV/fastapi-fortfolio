@@ -11,7 +11,7 @@ from modules.career.schemas import career_response
     tags=["Career"],
     operation_id="get_career",
 )
-async def get_career(
+def get_career(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -51,7 +51,7 @@ async def get_career(
     tags=["Career"],
     operation_id="get_career_by_id",
 )
-async def get_career_by_id(
+def get_career_by_id(
     career_id: str,
     db         : Session = Depends(get_db),
 ):

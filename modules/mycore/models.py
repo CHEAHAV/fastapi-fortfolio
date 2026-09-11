@@ -5,8 +5,9 @@ class TBL_MY_CORE(Base):
 
     __tablename__ = "tbl_my_core"
 
-    id          = Column(String(64), primary_key = True, index = True)
-    name        = Column(String(255))
-    description = Column(Text)
-    image       = Column(String(255))
-    active      = Column(Boolean, default = True, nullable= False)
+    id           = Column(String(64), primary_key = True, index = True)
+    name         = Column(String(255))
+    description  = Column(Text)
+    official_url = Column(String(2048), nullable=True)
+    image        = Column(String(255))
+    active       = Column(Boolean, default = True, nullable= False)

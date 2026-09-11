@@ -33,6 +33,7 @@ async def create_mycore(
         id            = new_id,
         name          = mycore.name,
         description   = mycore.description,
+        official_url  = mycore.official_url,
         image         = image_filename,
         active        = mycore.active
     )
@@ -139,6 +140,8 @@ async def update_mycore(
     )
     setattr(item, "name", mycore.name)
     setattr(item, "description", mycore.description)
+    if mycore.official_url is not None:
+        setattr(item, "official_url", mycore.official_url or None)
     setattr(item, "active", mycore.active)
     if mycore.image and mycore.image.filename:
         old_image = cast(str | None, getattr(item, "image", None))

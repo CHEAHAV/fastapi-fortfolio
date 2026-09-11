@@ -11,7 +11,7 @@ from main import website
     tags=["Experience"],
     operation_id="get_experience",
 )
-async def get_experience(
+def get_experience(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -51,7 +51,7 @@ async def get_experience(
     tags=["Experience"],
     operation_id="get_experience_by_id",
 )
-async def get_experience_by_id(
+def get_experience_by_id(
     experience_id: str,
     db         : Session = Depends(get_db),
 ):

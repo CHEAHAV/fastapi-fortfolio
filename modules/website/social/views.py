@@ -12,7 +12,7 @@ from modules.social.schemas import social_response
     tags=["Social"],
     operation_id="get_social",
 )
-async def get_social(
+def get_social(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -52,7 +52,7 @@ async def get_social(
     tags=["Social"],
     operation_id="get_social_by_id",
 )
-async def get_social_by_id(
+def get_social_by_id(
     social_id: str,
     db         : Session = Depends(get_db),
 ):

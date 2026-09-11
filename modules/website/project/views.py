@@ -11,7 +11,7 @@ from modules.project.schemas import project_response
     tags=["Project"],
     operation_id="get_project",
 )
-async def get_project(
+def get_project(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -51,7 +51,7 @@ async def get_project(
     tags=["Project"],
     operation_id="get_project_by_id",
 )
-async def get_project_by_id(
+def get_project_by_id(
     project_id: str,
     db         : Session = Depends(get_db),
 ):

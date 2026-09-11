@@ -12,7 +12,7 @@ from modules.contact_me.schemas import contact_me_response
     tags=["Contact Me"],
     operation_id="get_contact_me",
 )
-async def get_contact_me(
+def get_contact_me(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -52,7 +52,7 @@ async def get_contact_me(
     tags=["Contact Me"],
     operation_id="get_contact_me_by_id",
 )
-async def get_contact_me_by_id(
+def get_contact_me_by_id(
     contact_me_id: str,
     db         : Session = Depends(get_db),
 ):

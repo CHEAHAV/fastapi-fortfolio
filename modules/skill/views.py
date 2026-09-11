@@ -34,6 +34,7 @@ async def create_skill(
         name        = skill.name,
         score       = skill.score,
         description = skill.description,
+        official_url = skill.official_url,
         image       = image_filename,
         active      = skill.active
     )
@@ -141,6 +142,8 @@ async def update_skill(
     setattr(item, "name", skill.name)
     setattr(item, "score", skill.score)
     setattr(item, "description", skill.description)
+    if skill.official_url is not None:
+        setattr(item, "official_url", skill.official_url or None)
     setattr(item, "active", skill.active)
     if skill.image and skill.image.filename:
         old_image = cast(str | None, getattr(item, "image", None))

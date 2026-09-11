@@ -11,7 +11,7 @@ from modules.story.schemas import story_response
     tags=["Story"],
     operation_id="get_story",
 )
-async def get_story(
+def get_story(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -51,7 +51,7 @@ async def get_story(
     tags=["Story"],
     operation_id="get_story_by_id",
 )
-async def get_story_by_id(
+def get_story_by_id(
     story_id: str,
     db         : Session = Depends(get_db),
 ):

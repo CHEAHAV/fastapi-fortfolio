@@ -12,7 +12,7 @@ from modules.mycore.schemas import mycore_response
     tags=["Mycore"],
     operation_id="get_mycore", 
 )
-async def get_mycore(
+def get_mycore(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -52,7 +52,7 @@ async def get_mycore(
     tags=["Mycore"],
     operation_id="get_mycore_by_id",
 )
-async def get_mycore_by_id(
+def get_mycore_by_id(
     mycore_id: str,
     db         : Session = Depends(get_db),
 ):

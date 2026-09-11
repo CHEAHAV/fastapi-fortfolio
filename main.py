@@ -1,5 +1,8 @@
 from core.runtime import require_project_venv
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from core.db_session import get_db
 from config import settings
 from core.upload_utils import configure_cloudinary
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -64,6 +67,18 @@ if not IS_VERCEL:
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR), check_dir=False), name="static")
 
 app.mount("/website", website)
+
+
+@app.get("/health", tags=["Health"])
+def health(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "database": "unavailable"},
+        )
+    return {"status": "ok", "database": "ok"}
     
 @app.get("/custom/docs", include_in_schema=False)
 async def custom_docs():

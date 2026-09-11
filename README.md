@@ -13,7 +13,43 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8000
 
 ## PostgreSQL Setup
 
+Skills have an optional `official_url` column (HTTP/HTTPS, up to 2048 characters).
+Set it in the `create_skill` / `update_skill` form in `/docs`; admin and public
+skill responses include the saved link. Omitting it on update preserves the
+existing URL. To remove a link, submit an empty `official_url` form field.
+
+For an existing database, run the focused migration **before** starting the new
+backend. It adds only this column and fills the current technologies' official
+links. Running it again preserves saved or deliberately cleared links.
+
+```powershell
+.\venv\Scripts\python.exe migrate_skill_official_url.py --target local
+# Run against the hosted database before deploying the updated backend:
+.\venv\Scripts\python.exe migrate_skill_official_url.py --target neon
+```
+
+New databases also get the column through `create_table.py`. Set the URL when
+creating a skill. The frontend uses the API's saved `official_url`; known
+technology links are a compatibility fallback only for older API deployments
+that do not return this field.
+
 This project can use local PostgreSQL for development and Neon PostgreSQL for hosting.
+
+To check **all local tables and columns**, including tables outside the current
+ORM models, compare them with Neon:
+
+```powershell
+.\venv\Scripts\python.exe check_database_schema.py
+.\venv\Scripts\python.exe check_database_schema.py --apply-missing
+```
+
+The second command only creates missing tables and adds missing nullable columns.
+It preserves rows and existing column definitions. Required/generated column
+additions need a dedicated migration. Differences in existing types, nullability,
+or defaults are reported with a nonzero exit code for review.
+
+`GET /health` checks the API's selected database and returns 503 if it is unavailable.
+It does not test external email or media delivery.
 
 For local development, keep:
 

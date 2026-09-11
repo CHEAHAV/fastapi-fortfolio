@@ -231,7 +231,7 @@ def _send_message_email(message: MessageModel) -> None:
     status_code=201,
     operation_id="website_create_message",
 )
-async def create_message(
+def create_message(
     message: MessageModel = Depends(MessageModel.form),
     db     : Session      = Depends(get_db),
 ):

@@ -11,7 +11,7 @@ from modules.study.schemas import study_response
     tags=["Study"],
     operation_id="get_study",
 )
-async def get_study(
+def get_study(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -51,7 +51,7 @@ async def get_study(
     tags=["Study"],
     operation_id="get_study_by_id",
 )
-async def get_study_by_id(
+def get_study_by_id(
     study_id: str,
     db         : Session = Depends(get_db),
 ):

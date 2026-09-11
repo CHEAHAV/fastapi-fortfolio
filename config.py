@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from pathlib import Path
 from urllib.parse import urlparse
 
-root_path = str(Path('.'))
-env_path  = Path('.') / '.env'
+root_path = str(Path(__file__).resolve().parent)
+env_path  = Path(root_path) / '.env'
 load_dotenv(dotenv_path=env_path)
 BASE_DIR   = os.path.abspath(os.path.dirname(__file__))
 image_path = '%s/images/'%os.getenv('S3_URL') if os.getenv('FILE_STORAGE') == 'S3' else "%s/static/images/"%(os.getenv("APP_URL"))

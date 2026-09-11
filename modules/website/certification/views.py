@@ -11,7 +11,7 @@ from modules.certification.schemas import certification_response
     tags=["Certification"],
     operation_id="get_certification",
 )
-async def get_certification(
+def get_certification(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -51,7 +51,7 @@ async def get_certification(
     tags=["Certification"],
     operation_id="get_certification_by_id",
 )
-async def get_certification_by_id(
+def get_certification_by_id(
     certificate_id: str,
     db         : Session = Depends(get_db),
 ):

@@ -11,7 +11,7 @@ from modules.info.schemas import info_response
     tags=["info"],
     operation_id="get_info",
 )
-async def get_info(
+def get_info(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -51,7 +51,7 @@ async def get_info(
     tags=["info"],
     operation_id="get_info_by_id",
 )
-async def get_info_by_id(
+def get_info_by_id(
     info_id: str,
     db         : Session = Depends(get_db),
 ):

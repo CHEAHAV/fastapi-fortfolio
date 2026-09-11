@@ -12,7 +12,7 @@ from modules.skill.schemas import skill_response
     tags=["Skill"],
     operation_id="get_skill",
 )
-async def get_skill(
+def get_skill(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -52,7 +52,7 @@ async def get_skill(
     tags=["Skill"],
     operation_id="get_skill_by_id",
 )
-async def get_skill_by_id(
+def get_skill_by_id(
     skill_id: str,
     db         : Session = Depends(get_db),
 ):

@@ -11,7 +11,7 @@ from modules.teach_stack.schemas import teach_stack_response
     tags=["Teach Stack"],
     operation_id="get_teach_stack",
 )
-async def get_teach_stack(
+def get_teach_stack(
     page: int     = Query(default=1, ge=1),
     size: int     = Query(default=10, ge=1),
     db  : Session = Depends(get_db)
@@ -51,7 +51,7 @@ async def get_teach_stack(
     tags=["Teach Stack"],
     operation_id="get_teach_stack_by_id",
 )
-async def get_teach_stack_by_id(
+def get_teach_stack_by_id(
     teach_stack_id: str,
     db         : Session = Depends(get_db),
 ):

@@ -1,5 +1,6 @@
 from typing import Any
 import logging
+from functools import lru_cache
 
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import Session, sessionmaker
@@ -43,14 +44,19 @@ class MirroringSession(Session):
         upserts = []
         deletes = []
         if should_mirror:
+            changed = list(self.new) + list(self.dirty)
+            deleted = list(self.deleted)
+            # Materialize generated IDs/defaults before copying values to Neon.
+            # Flush clears new/dirty collections, so retain the instances first.
+            self.flush()
             upserts = [
                 (type(instance), _row_data(instance))
-                for instance in list(self.new) + list(self.dirty)
+                for instance in changed
                 if inspect(instance, raiseerr=False) is not None
             ]
             deletes = [
                 (type(instance), _primary_key_filter(instance))
-                for instance in list(self.deleted)
+                for instance in deleted
                 if inspect(instance, raiseerr=False) is not None
             ]
 
@@ -63,16 +69,21 @@ class MirroringSession(Session):
                 logger.warning("Database mirror write failed: %s", exc)
 
 
-def _mirror_changes(mirror_url: str, upserts: list[tuple[type, dict]], deletes: list[tuple[type, dict]]) -> None:
-    mirror_engine = create_engine(
+@lru_cache(maxsize=2)
+def _mirror_engine(mirror_url: str):
+    return create_engine(
         mirror_url,
-        pool_timeout  = 30,
+        pool_timeout  = 10,
         pool_pre_ping = True,
+        connect_args  = {"connect_timeout": 8},
     )
+
+
+def _mirror_changes(mirror_url: str, upserts: list[tuple[type, dict]], deletes: list[tuple[type, dict]]) -> None:
     mirror_session_factory = sessionmaker(
         autocommit = False,
         autoflush  = False,
-        bind       = mirror_engine,
+        bind       = _mirror_engine(mirror_url),
     )
     mirror_session = mirror_session_factory()
 
@@ -91,4 +102,3 @@ def _mirror_changes(mirror_url: str, upserts: list[tuple[type, dict]], deletes: 
         raise
     finally:
         mirror_session.close()
-        mirror_engine.dispose()
